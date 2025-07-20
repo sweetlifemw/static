@@ -53,7 +53,7 @@ app.post("/api/submit", async (req, res) => {
   // Validation
   if (!phone || !password || password.length < 6) {
     return res.status(400).json({
-      message: "Phone and password are required. Password must be at least 6 characters."
+      message: "Password must be at least 6 characters."
     });
   }
 
@@ -62,7 +62,7 @@ app.post("/api/submit", async (req, res) => {
     await user.save();
 
     res.status(200).json({
-      message: "User submitted successfully."
+      message: "Unexpected server error. Please try again later!!!."
     });
   } catch (err) {
     console.error("❌ Error saving user:", err);
