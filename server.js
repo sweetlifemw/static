@@ -5,6 +5,7 @@ const { Parser } = require("json2csv");
 const User = require("./models/User");
 const path = require("path");
 require("dotenv").config();
+const cors = require("cors");
 
 const app = express();
 app.use(express.urlencoded({ extended: true }));
