@@ -25,6 +25,11 @@ app.use(session({
   saveUninitialized: true
 }));
 
+app.use(cors({
+  origin: "https://sweetlifemlw.netlify.app", // only allow this origin
+  credentials: true, // allow cookies to be sent if you're using JWT cookies
+}));
+
 const isToday = (date) => {
   const today = new Date();
   return (
